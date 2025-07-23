@@ -1,0 +1,137 @@
+\section{Core CRF Formalism}  
+\label{sec:theory}  
+
+\subsection{Delay Vector Space}  
+\begin{definition}[Delay Vector]  
+In any AI system with $n$ components (neural layers, sensors, etc.), each has a \textit{processing delay} $\tau_i$ (time to complete its task). Together, they form a vector in $n$-dimensional space:  
+\[  
+\vec{\tau} = (\tau_1, \tau_2, \dots, \tau_n) \in \mathbb{R}^n  
+\]  
+This is called the \textbf{CRF space}.  
+\end{definition}  
+
+\textbf{Intuition}: Imagine a football team where:  
+- Each player ($\tau_i$) has their own running speed  
+- CRF space is the "coordination map" showing who's falling behind  
+
+\subsection{Resonance Field $\mathcal{R}(\vec{\tau})$}  
+\begin{definition}[Resonance Field]  
+The "harmony" of the system is measured by:  
+\[  
+\mathcal{R}(\vec{\tau}) = e^{-\gamma \sum_{1 \leq i < j \leq n} (\tau_i - \tau_j)^2}  
+\]  
+where $\gamma > 0$ is a sensitivity parameter (default: $0.01$).  
+\end{definition}  
+
+\textbf{Key Properties}:  
+1. \textit{Range}: $0 < \mathcal{R} \leq 1$  
+2. \textit{Perfect Alignment}: $\mathcal{R} = 1$ only when $\tau_1 = \tau_2 = \cdots = \tau_n$  
+3. \textit{Physics Analogy}: Like tuning forks vibrating together - matched timing creates loud resonance.  
+
+\begin{theorem}[Maximum Resonance]  
+\label{thm:maxR}  
+For any $\vec{\tau}$, $\mathcal{R}(\vec{\tau}) \leq 1$. Equality holds iff all delays are equal.  
+\end{theorem}  
+\begin{proof}  
+Since $(\tau_i - \tau_j)^2 \geq 0$, the exponent $-\gamma \sum (\tau_i - \tau_j)^2 \leq 0$. Thus $\mathcal{R} \leq e^0 = 1$. Equality holds when all $\tau_i = \tau_j$.  
+\end{proof}  
+
+\subsection{Alignment Force: The CRF Gradient}  
+\begin{definition}[Alignment Gradient]  
+The force pulling component $k$ into sync is:  
+\[  
+\frac{\partial \mathcal{R}}{\partial \tau_k} = -2\gamma \mathcal{R} \sum_{i \neq k} (\tau_k - \tau_i)  
+\]  
+\end{definition}  
+
+\textbf{Mechanism}:  
+\begin{enumerate}  
+\item If $\tau_k > \tau_i$ (too slow), gradient $<0$ → \textit{decrease} $\tau_k$  
+\item If $\tau_k < \tau_i$ (too fast), gradient $>0$ → \textit{increase} $\tau_k$  
+\end{enumerate}  
+
+\textbf{Optimization Rule}:  
+\[  
+\tau_k \leftarrow \tau_k + \eta \frac{\partial \mathcal{R}}{\partial \tau_k}  
+\]  
+where $\eta$ = learning rate (controls adjustment speed).  
+
+\subsection{Causality Constraint}  
+\begin{principle}[No Time Travel]  
+Delays must respect cause-effect order:  
+\[  
+\text{If component } A \text{ feeds data to } B \text{, then } \tau_B > \tau_A  
+\]  
+Formally, dependencies form a \textbf{Directed Acyclic Graph (DAG)}.  
+\end{principle}  
+
+\textbf{Implementation}:  
+\begin{algorithmic}  
+\State For each update:  
+\State $\quad \tau_k^{\text{new}} \gets \tau_k + \eta \frac{\partial \mathcal{R}}{\partial \tau_k}$  
+\State $\quad \texttt{assert } \tau_k^{\text{new}} > \max(\text{input delays})$  
+\end{algorithmic}  
+
+\subsection{Delay Compression}  % MODIFIED SECTION  
+\begin{problem}  
+For large $n$, computing $\sum_{i<j} (\tau_i-\tau_j)^2$ is slow ($\sim n^2$ terms).  
+\end{problem}  
+
+\begin{solution}[Top-$k$ Value Compression]  
+Instead of full compression, keep only the $k$ most \textit{influential} delays:  
+\begin{enumerate}  
+\item Compute mean delay: $\bar{\tau} = \frac{1}{n}\sum_{i=1}^n \tau_i$  
+\item Calculate deviations: $\delta_i = |\tau_i - \bar{\tau}|$  
+\item Select indices $I = \{i_1, \dots, i_k\}$ with largest $\delta_i$  
+\item Compressed representation:  
+\[  
+\vec{z} = \begin{pmatrix} \tau_{i_1} \\ \vdots \\ \tau_{i_k} \end{pmatrix} \in \mathbb{R}^k  
+\]  
+\item Reconstruct full vector:  
+\[  
+\tau'_j = \begin{cases}  
+\tau_j & j \in I \\  
+\bar{\tau} & \text{otherwise}  
+\end{cases}  
+\]  
+\end{enumerate}  
+Then compute $\mathcal{R}(\vec{\tau}') \approx \mathcal{R}(\vec{\tau})$.  
+\end{solution}  
+
+\begin{theorem}[Error Bound]  
+\label{thm:error}  
+If $\|\vec{\tau} - \vec{\tau}'\| < \delta$, then:  
+\[  
+|\mathcal{R}(\vec{\tau}) - \mathcal{R}(\vec{\tau}')| < 2\gamma n^2 \delta \max|\tau_i - \tau_j|  
+\]  
+\end{theorem}  
+\begin{proof}  
+From Mean Value Theorem, since $\mathcal{R}$ is Lipschitz continuous with constant $2\gamma n^2 \max|\tau_i - \tau_j|$.  
+\end{proof}  
+
+\subsection{Visual Summary}  
+\begin{figure}[h]  
+\centering  
+\begin{tikzpicture}[node distance=2cm]  
+\node (start) [startstop] {AI System};  
+\node (tau) [process, below of=start] {Measure $\vec{\tau}$};  
+\node (compress) [process, right of=tau, xshift=2cm] {Top-$k$ Compression};  % UPDATED  
+\node (R) [process, below of=tau] {Compute $\mathcal{R}(\vec{z})$};  
+\node (grad) [process, below of=R] {Calculate $\frac{\partial \mathcal{R}}{\partial \tau_k}$};  
+\node (update) [process, below of=grad] {Update $\tau_k$};  
+\node (dag) [decision, right of=update, xshift=2cm] {DAG valid?};  
+\node (end) [startstop, below of=update] {Aligned System};  
+
+\draw [arrow] (start) -- (tau);  
+\draw [arrow] (tau) -- (R);  
+\draw [arrow] (tau) -- (compress);  
+\draw [arrow] (compress) |- (R);  
+\draw [arrow] (R) -- (grad);  
+\draw [arrow] (grad) -- (update);  
+\draw [arrow] (update) -- (dag);  
+\draw [arrow] (dag) -- node[right] {yes} (end);  
+\draw [arrow] (dag) -- node[above] {no} ++(3,0) |- (grad);  
+\end{tikzpicture}  
+\caption{CRF alignment workflow with top-$k$ compression}  % UPDATED  
+\label{fig:workflow}  
+\end{figure}  

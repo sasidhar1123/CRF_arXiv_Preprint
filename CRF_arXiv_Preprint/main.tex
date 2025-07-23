@@ -1,0 +1,48 @@
+\documentclass[10pt, twocolumn]{article}
+\usepackage{amsmath, amssymb, graphicx, booktabs}
+\usepackage[section]{algorithm}
+\usepackage{algpseudocode}
+\usepackage{tikz}
+\usetikzlibrary{shapes, arrows, positioning}
+\usepackage{hyperref}
+
+% Define block styles for TikZ
+\tikzstyle{startstop} = [rectangle, rounded corners, minimum width=3cm, minimum height=1cm,text centered, draw=black, fill=red!20]
+\tikzstyle{process} = [rectangle, minimum width=3cm, minimum height=1cm, text centered, draw=black, fill=orange!20]
+\tikzstyle{decision} = [diamond, minimum width=3cm, minimum height=1cm, text centered, draw=black, fill=green!20]
+\tikzstyle{arrow} = [thick,->,>=stealth]
+
+\title{Causal Resonance Fields: A Formal Theory for Temporal Alignment in AI Systems}
+\author{Your Name}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+% Abstract
+\input{sections/abstract}
+
+% Introduction
+\input{sections/introduction}
+
+% Core Theory
+\input{sections/theory}
+
+% Mathematical Proofs
+\input{sections/proofs}
+
+% Synthetic Validation
+\input{sections/simulations}
+
+% Conclusion
+\input{sections/conclusion}
+
+% References
+\bibliographystyle{plain}
+\bibliography{bibliography}
+
+% Supplementary Material Note
+\section*{Supplementary Material}
+All simulation code and datasets are available at:\\
+\url{https://github.com/yourusername/CRF-Repository}
+\end{document}

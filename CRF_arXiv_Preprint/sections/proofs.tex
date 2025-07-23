@@ -1,0 +1,77 @@
+\section{Mathematical Proofs}
+\label{sec:proofs}
+
+\subsection{Maximum Resonance Theorem}
+
+\begin{theorem}[Maximum Resonance]
+\label{thm:max_resonance}
+For any delay vector $\vec{\tau} = (\tau_1, \tau_2, \dots, \tau_n) \in \mathbb{R}^n$,
+\[
+\mathcal{R}(\vec{\tau}) = \exp\left(-\gamma \sum_{1 \leq i < j \leq n} (\tau_i - \tau_j)^2\right) \leq 1
+\]
+Equality $\mathcal{R}(\vec{\tau}) = 1$ holds if and only if $\tau_1 = \tau_2 = \cdots = \tau_n$.
+\end{theorem}
+
+\begin{proof}
+Consider the pairwise delay differences:
+\begin{enumerate}
+\item For all $i < j$, we have $(\tau_i - \tau_j)^2 \geq 0$ since squares are non-negative.
+\item Thus the sum $S = \sum_{1 \leq i < j \leq n} (\tau_i - \tau_j)^2 \geq 0$.
+\item Multiplying by $-\gamma$ (where $\gamma > 0$):
+\[
+-\gamma S \leq 0
+\]
+\item The exponential function is monotonically increasing, so:
+\[
+\mathcal{R} = e^{-\gamma S} \leq e^0 = 1
+\end{enumerate}\]
+
+\textbf{Equality condition}: 
+$\mathcal{R} = 1$ occurs iff $-\gamma S = 0$ iff $S = 0$ iff $(\tau_i - \tau_j)^2 = 0$ for all $i,j$ iff $\tau_i = \tau_j$ for all $i,j$. 
+
+Thus perfect resonance requires all delays to be equal.
+\end{proof}
+
+\subsection{Gradient of the Resonance Field}
+
+\begin{theorem}[CRF Gradient]
+\label{thm:gradient}
+The gradient of the resonance field with respect to delay $\tau_k$ is:
+\[
+\frac{\partial \mathcal{R}}{\partial \tau_k} = -2\gamma \mathcal{R} \sum_{i \neq k} (\tau_k - \tau_i)
+\]
+\end{theorem}
+
+\begin{proof}
+Define the energy function:
+\[
+E(\vec{\tau}) = -\gamma \sum_{1 \leq i < j \leq n} (\tau_i - \tau_j)^2
+\]
+so that $\mathcal{R} = e^{E}$. By the chain rule:
+\[
+\frac{\partial \mathcal{R}}{\partial \tau_k} = \frac{d\mathcal{R}}{dE} \cdot \frac{\partial E}{\partial \tau_k}
+\]
+
+\textbf{Step 1}: Derivative of $\mathcal{R}$ with respect to $E$:
+\[
+\frac{d\mathcal{R}}{dE} = \frac{d}{dE} e^E = e^E = \mathcal{R}
+\]
+
+\textbf{Step 2}: Derivative of $E$ with respect to $\tau_k$. Expand the sum:
+\[
+E = -\gamma \sum_{i<j} (\tau_i - \tau_j)^2
+\]
+The derivative $\partial E / \partial \tau_k$ depends only on terms containing $\tau_k$. For each pair $(k,i)$ with $i \neq k$:
+\[
+\frac{\partial}{\partial \tau_k} (\tau_k - \tau_i)^2 = 2(\tau_k - \tau_i)
+\]
+There are $(n-1)$ such terms. Thus:
+\[
+\frac{\partial E}{\partial \tau_k} = -\gamma \cdot 2 \sum_{i \neq k} (\tau_k - \tau_i)
+\]
+
+\textbf{Combining results}:
+\[
+\frac{\partial \mathcal{R}}{\partial \tau_k} = \mathcal{R} \cdot \left(-2\gamma \sum_{i \neq k} (\tau_k - \tau_i)\right) = -2\gamma \mathcal{R} \sum_{i \neq k} (\tau_k - \tau_i)
+\]
+\end{proof}
